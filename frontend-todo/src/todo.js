@@ -5,7 +5,9 @@ export default function Todo() {
   const [tasks, setTasks] = useState([]);
   const [newTasks, setNewInputTasks] = useState("");
 
-  const backendurl = "http://localhost:5000";
+  const backendurl = window?.env?.BACKEND_URL || "http://localhost:5000";
+  console.log(backendurl);
+  
   //initial load
 
   function getTasks() {
