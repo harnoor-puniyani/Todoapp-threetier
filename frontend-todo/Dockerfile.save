@@ -1,0 +1,10 @@
+FROM node:alpine As base
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm run install && \
+	npm run build
+
+CMD 
