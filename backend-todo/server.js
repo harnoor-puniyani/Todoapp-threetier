@@ -21,7 +21,10 @@ client.connect().then(() => {
 
 app.use(express.json()).use(cors());
 
+console.log(process.env.PORT);
+
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
@@ -41,12 +44,12 @@ app.post("/tasks", async (req, res) => {
     return res.status(400).json({ error: "Task is required" });
   }
   try {
-    let index = await client.lLen("tasks")
+    let index = await client.lLen("tasks");
     var taskObject = {
-        task: task,
-        completed: false,
-        id: index
-    }
+      task: task,
+      completed: false,
+      id: index,
+    };
     await client.rPush("tasks", JSON.stringify(taskObject));
     res.status(201).json({ message: "Task added successfully" });
   } catch (err) {
@@ -54,26 +57,26 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
-app.patch("/tasks",async (req,res)=>{
+app.patch("/tasks", async (req, res) => {
   console.log(JSON.stringify(req.body));
-  const {task} = req.body;    
-  const {id} = req.body;
-  const {completed} = req.body;    
-  console.log(id, task,completed);
-  if(!id){
-    return res.status(500).json({error: "id not found"});
+  const { task } = req.body;
+  const { id } = req.body;
+  const { completed } = req.body;
+  console.log(id, task, completed);
+  if (!id) {
+    return res.status(500).json({ error: "id not found" });
   }
   try {
     var taskObject = {
       task: task,
       completed: completed,
-      id: id
+      id: id,
     };
 
-    await client.lSet("tasks",id,JSON.stringify(taskObject));
-    res.status(203).json({message:"task updated"})
+    await client.lSet("tasks", id, JSON.stringify(taskObject));
+    res.status(203).json({ message: "task updated" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error });
   }
-})
+});

@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  redis:
+    image: redis/redis-stack-server:latest
+    volumes:
+      - redisdb:/data:rw
+    ports:
+      - "6379:6379"
+    networks:
+      - todo
+  backend-service:
+    build: 
+      context: ./backend-todo
+    ports:
+      - "3001:5000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+  frontend:
+    build: 
+      context: ./frontend-todo
+    volumes:
+      - frontendenv:/app/build/envmount:rw
+    expose:
+      - 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-service
+    networks:
+      - todo
+
+networks:
+  todo:
+    driver: bridge
+volumes:
+  redisdb:
+    driver: local
+  frontendenv:

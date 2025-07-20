@@ -1,9 +1,9 @@
-FROM node:lts-alpine as builder
+FROM node:lts-alpine AS builder
 
 WORKDIR /app
 
 COPY . .
 
-RUN npm run install
+RUN npm install
 
 CMD ["node","server.js"]
