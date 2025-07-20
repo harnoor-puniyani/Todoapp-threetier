@@ -21,15 +21,15 @@ services:
       - REDIS_HOST=redis
     networks:
       - todo
-  prep-mount:
-    image: alpine:latest
-    volumes:
-      - frontendenv:/app:rw
-    command: |
-      sh -c  cd /app && echo "window.env = {
-        BACKEND_URL: \"https://20.244.41.61:5000\"
-      }" > env.js
-    
+        #prep-mount:
+        #  image: alpine:latest
+        #  volumes:
+        #    - frontendenv:/app:rw
+        #  command: |
+        #    sh -c  cd /app && echo "window.env = {
+        #      BACKEND_URL: \"https://20.244.41.61:5000\"
+        #   }" > env.js
+        #  
   frontend:
     build: 
       context: ./frontend-todo
