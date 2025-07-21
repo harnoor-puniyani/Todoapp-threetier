@@ -5,6 +5,7 @@
 
 trigger:
 - master
+- azure-pipelines
 
 pool:
   vmImage: ubuntu-latest
@@ -15,21 +16,22 @@ variables:
 
 stages:
   - stage: build
-    variables:
-      basetag: 'harnoorpuniyani/todo-threetier-backend'
+    displayName: Build Images
     pool:
       vmImage: ubuntu-latest
-    displayName: Build Backend
     jobs:
       - job:
+        displayName: Build Backend
+        variables:
+          basetag: 'harnoorpuniyani/todo-threetier-backend'
         strategy:
           matrix: 
             linux:
               OS: ubuntu-latest
               platformOs: linux
-            windows:
-              OS: windows-latest
-              platformOs: windows
+            # windows:
+            #   OS: windows-latest
+            #   platformOs: windows
           maxParallel: 2
         steps:
          - task: DockerInstaller@0
@@ -50,4 +52,34 @@ stages:
          
          - script: |
             cd backend-todo/ && docker buildx build --platform $(platformOs)/amd64,$(platformOs)/arm64 -t '$(basetag):$(buildtag)-$(platformOs)' -t '$(basetag):$(latesttag)-$(platformOs)' . --push
+           displayName: Create and Push Multi Architecture Image - $(platformOs)
+      - job:
+        displayName: Build Frontend
+        variables:
+          basetag: 'harnoorpuniyani/todo-threetier-frontend'
+        strategy:
+          matrix:
+            lin:
+              OS: ubuntu-latest
+              platformOs: linux
+          maxParallel: 1
+        steps:
+         - task: DockerInstaller@0
+           inputs:
+            dockerVersion: '28.3.0'
+         - script: docker buildx version
+           displayName: Check docker buildx
+         - task: Docker@2
+           inputs:
+            containerRegistry: 'docker-harnoorpuniyani'
+            command: 'login'
+            addPipelineData: false
+            addBaseImageData: false
+         
+         - script: |
+            docker buildx create --use --name builder
+           displayName: create Buildx Builder
+         
+         - script: |
+            cd frontend-todo/ && docker buildx build --platform $(platformOs)/amd64,$(platformOs)/arm64 -t '$(basetag):$(buildtag)-$(platformOs)' -t '$(basetag):$(latesttag)-$(platformOs)' . --push
            displayName: Create and Push Multi Architecture Image - $(platformOs)
