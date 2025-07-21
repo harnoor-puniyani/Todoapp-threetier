@@ -51,5 +51,3 @@ stages:
          - script: |
             cd backend-todo/ && docker buildx build --platform $(platformOs)/amd64,$(platformOs)/arm64 -t '$(basetag):$(buildtag)-$(platformOs)' -t '$(basetag):$(latesttag)-$(platformOs)' . --push
            displayName: Create and Push Multi Architecture Image - $(platformOs)
-
-         -  
