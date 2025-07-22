@@ -116,17 +116,20 @@ stages:
               platformOs: linux
         steps:
           - script: |
-              docker run --name redisdb -p 6379:6379 -d redis/redis-stack-server:latest
+              docker network create --name todo --driver bridge
+          - script: |
+              docker run --name redisdb -p 6379:6379 -d --network todo redis/redis-stack-server:latest
             displayName: Run Refis
 
           - script: |
-              docker run --name backend --rm -p 5000:5000 -e REDIS_HOST=redisdb $(basetag):$(buildtag)-$(platformOs) npm test
+              docker run --name backend --rm -p 5000:5000 -e REDIS_HOST=redisdb --network bridge $(basetag):$(latesttag)-$(platformOs) npm test
             displayName: Runing Test cases
   - stage: Deploy
     condition: or(succeeded(),eq('${{parameters.deployment}}',true))
     dependsOn: Test
     jobs:
       - deployment: 
+        displayName: Deployment Job
         environment: Dev
         strategy:
           runOnce:
