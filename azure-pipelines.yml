@@ -101,7 +101,7 @@ stages:
   - stage: Test
     displayName: Unit Testing
     dependsOn: build
-    condition: and(succeeded('build'),eq('${{parameters.testChanges}}',true))
+    condition: or(succeeded('build'),eq('${{parameters.testChanges}}',true))
     jobs:
       - job: Backend
         variables:
@@ -123,7 +123,7 @@ stages:
               docker run --name backend --rm -p 5000:5000 -e REDIS_HOST=redisdb $(basetag):$(buildtag)-$(platformOs) npm test
             displayName: Runing Test cases
   - stage: Deploy
-    condition: and(succeeded(),eq('${{parameters.deployment}}',true))
+    condition: or(succeeded(),eq('${{parameters.deployment}}',true))
     dependsOn: Test
     jobs:
       - deployment: 
