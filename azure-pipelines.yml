@@ -14,11 +14,26 @@ variables:
   latesttag: latest
   buildtag: '$(Build.BuildNumber)'
 
+parameters:
+  - name: buildImages
+    type: boolean
+    displayName: Build Images
+    default: false
+  - name: testChanges
+    type: boolean
+    displayName: Test Changes
+    default: true
+  - name: deployment
+    type: boolean
+    displayName: deploy changes
+    default: true
+
 stages:
   - stage: build
     displayName: Build Images
     pool:
       vmImage: ubuntu-latest
+    condition: eq('${{parameters.buildImages}}',true)
     jobs:
       - job:
         displayName: Build Backend
@@ -86,7 +101,7 @@ stages:
   - stage: Test
     displayName: Unit Testing
     dependsOn: build
-    condition: succeeded('build')
+    condition: and(succeeded('build'),eq('${{parameters.testChanges}}',true))
     jobs:
       - job: Backend
         variables:
@@ -108,7 +123,7 @@ stages:
               docker run --name backend --rm -p 5000:5000 -e REDIS_HOST=redisdb $(basetag):$(buildtag)-$(platformOs) npm test
             displayName: Runing Test cases
   - stage: Deploy
-    condition: succeeded()
+    condition: and(succeeded(),eq('${{parameters.deployment}}',true))
     dependsOn: Test
     jobs:
       - deployment: 
