@@ -105,7 +105,7 @@ stages:
             displayName: Run Refis
 
           - script: |
-              docker run --name backend --rm -p 5000:5000 $(basetag):$(buildtag)-$(platformOs) npm test
+              docker run --name backend --rm -p 5000:5000 -e REDIS_HOST=redisdb $(basetag):$(buildtag)-$(platformOs) npm test
             displayName: Runing Test cases
   - stage: Deploy
     condition: succeeded()
