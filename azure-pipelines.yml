@@ -83,3 +83,42 @@ stages:
          - script: |
             cd frontend-todo/ && docker buildx build --platform $(platformOs)/amd64,$(platformOs)/arm64 -t '$(basetag):$(buildtag)-$(platformOs)' -t '$(basetag):$(latesttag)-$(platformOs)' . --push
            displayName: Create and Push Multi Architecture Image - $(platformOs)
+  - stage: Test
+    displayName: Unit Testing
+    dependsOn: build
+    condition: succeeded('build')
+    jobs:
+      - job: Backend
+        variables:
+          basetag: 'harnoorpuniyani/todo-threetier-backend'
+        pool:
+         vmImage: ubuntu-latest 
+        displayName: Testing Backend
+        strategy:
+          matrix:
+            linux:
+              os: ubuntu-latest
+              platformOs: linux
+        steps:
+          - script: |
+              docker run --name redisdb -p 6379:6379 -d redis/redis-stack-server:latest
+            displayName: Run Refis
+
+          - script: |
+              docker run --name backend --rm -p 5000:5000 $(basetag):$(buildtag)-$(platformOs) npm test
+            displayName: Runing Test cases
+  - stage: Deploy
+    condition: succeeded()
+    dependsOn: Test
+    jobs:
+      - deployment: 
+        environment: Dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: |
+                    echo "hello deployment"
+                  displayName: Sample deploy
+
+
