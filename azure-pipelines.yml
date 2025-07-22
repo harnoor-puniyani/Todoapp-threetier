@@ -29,14 +29,40 @@ parameters:
     default: true
 
 stages:
+  - stage: Code
+    displayName: code analysis
+    jobs:
+    - job: Frontend
+      displayName: Static code analysis Frontend
+      steps:
+        - task: SonarCloudPrepare@3
+          inputs:
+            SonarQube: 'sonar qube cloud service connection'
+            organization: 'arzom-test'
+            scannerMode: 'cli'
+            configMode: 'manual'
+            cliProjectKey: 'arzom-test_test-todo'
+            cliProjectName: 'Test-todo'
+            cliSources: '.'
+            extraProperties: |
+              sonar.projectKey=arzom-test_test-todo
+              sonar.organization=arzom-test
+        - script: |
+            cd frontend-todo && \
+            npm install && \
+            npm run build
+        - task: SonarCloudPublish@3
+          inputs:
+            pollingTimeoutSec: '300'
   - stage: build
+    dependsOn: Code
     displayName: Build Images
     pool:
       vmImage: ubuntu-latest
-    condition: eq('${{parameters.buildImages}}',true)
     jobs:
-      - job:
+      - job: build
         displayName: Build Backend
+        condition: eq('${{parameters.buildImages}}',true)
         variables:
           basetag: 'harnoorpuniyani/todo-threetier-backend'
         strategy:
@@ -125,6 +151,7 @@ stages:
           - script: |
               docker run --name backend --rm -p 5000:5000 -e REDIS_HOST=redisdb --network todo $(basetag):$(latesttag)-$(platformOs) npm test
             displayName: Runing Test cases
+
   - stage: Deploy
     condition: or(succeeded(),eq('${{parameters.deployment}}',true))
     dependsOn: Test
