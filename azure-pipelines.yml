@@ -1,0 +1,211 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+- azure-pipelines
+
+pr:
+  branches:
+    include:
+      - master
+  drafts: true
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  latesttag: latest
+  buildtag: '$(Build.BuildNumber)'
+
+parameters:
+  - name: codeAnalysis
+    default: false
+    type: boolean
+    displayName: code analysis
+  - name: buildImages
+    type: boolean
+    displayName: Build Images
+    default: false
+  - name: testChanges
+    type: boolean
+    displayName: Test Changes
+    default: false
+  - name: deployment
+    type: boolean
+    displayName: deploy changes
+    default: false
+
+stages:
+  - stage: Code
+    displayName: code analysis
+    condition: > 
+      or(
+        eq(variables['System.PullRequest.TargetBranch'], 'master'),
+        eq(variables['System.PullRequest.TargetBrachName'],'master'),
+        eq('${{parameters.codeAnalysis}}',true)
+      )
+    jobs:
+    - job: Frontend
+      displayName: code analysis Frontend
+      condition: 
+      steps:
+        -  checkout: self
+        - task: SonarCloudPrepare@3
+          inputs:
+            SonarQube: 'sonar qube cloud service connection'
+            organization: 'arzom-test'
+            scannerMode: 'cli'
+            configMode: 'manual'
+            cliProjectKey: 'arzom-test_test-todo'
+            cliProjectName: 'Test-todo'
+            cliSources: '.'
+            extraProperties: |
+              sonar.projectKey=arzom-test_test-todo
+              sonar.organization=arzom-test
+        - script: |
+            cd frontend-todo && \
+            npm install && \
+            npm run build
+        - task: SonarCloudAnalyze@3
+          inputs:
+            jdkversion: 'JAVA_HOME_21_X64'
+        - task: SonarCloudPublish@3
+          inputs:
+            pollingTimeoutSec: '300'
+  - stage: build
+    dependsOn: Code
+    condition: >
+      or(
+          eq('${{parameters.buildImages}}',true),
+          eq(variables['Build.SourceBranch'], 'refs/heads/master')
+        )
+    displayName: Build Images
+    pool:
+      vmImage: ubuntu-latest
+    jobs:
+      - job: build
+        displayName: Build Backend
+        variables:
+          basetag: 'harnoorpuniyani/todo-threetier-backend'
+        strategy:
+          matrix: 
+            linux:
+              OS: ubuntu-latest
+              platformOs: linux
+            # windows:
+            #   OS: windows-latest
+            #   platformOs: windows
+          maxParallel: 2
+        steps:
+         - checkout: self
+         - task: DockerInstaller@0
+           inputs:
+            dockerVersion: '28.3.0'
+         - script: docker buildx version
+           displayName: Check docker buildx
+         - task: Docker@2
+           inputs:
+            containerRegistry: 'docker-harnoorpuniyani'
+            command: 'login'
+            addPipelineData: false
+            addBaseImageData: false
+         
+         - script: |
+            docker buildx create --use --name builder
+           displayName: create Buildx Builder
+         
+         - script: |
+            cd backend-todo/ && docker buildx build --platform $(platformOs)/amd64,$(platformOs)/arm64 -t '$(basetag):$(buildtag)-$(platformOs)' -t '$(basetag):$(latesttag)-$(platformOs)' . --push
+           displayName: Create and Push Multi Architecture Image - $(platformOs)
+      - job:
+        displayName: Build Frontend
+        variables:
+          basetag: 'harnoorpuniyani/todo-threetier-frontend'
+        strategy:
+          matrix:
+            lin:
+              OS: ubuntu-latest
+              platformOs: linux
+          maxParallel: 1
+        steps:
+         - checkout: self
+         - task: DockerInstaller@0
+           inputs:
+            dockerVersion: '28.3.0'
+         - script: docker buildx version
+           displayName: Check docker buildx
+         - task: Docker@2
+           inputs:
+            containerRegistry: 'docker-harnoorpuniyani'
+            command: 'login'
+            addPipelineData: false
+            addBaseImageData: false
+         
+         - script: |
+            docker buildx create --use --name builder
+           displayName: create Buildx Builder
+         
+         - script: |
+            cd frontend-todo/ && docker buildx build --platform $(platformOs)/amd64,$(platformOs)/arm64 -t '$(basetag):$(buildtag)-$(platformOs)' -t '$(basetag):$(latesttag)-$(platformOs)' . --push
+           displayName: Create and Push Multi Architecture Image - $(platformOs)
+  - stage: Test
+    displayName: Unit Testing
+    dependsOn: build
+    condition: >
+      or(
+        succeeded('build'),
+        eq('${{parameters.testChanges}}',true),
+        eq(variables['Build.SourceBranch'], 'refs/heads/azure-pipelines')
+      )
+    jobs:
+      - job: Backend
+        variables:
+          basetag: 'harnoorpuniyani/todo-threetier-backend'
+        pool:
+         vmImage: ubuntu-latest 
+        displayName: Testing Backend
+        strategy:
+          matrix:
+            linux:
+              os: ubuntu-latest
+              platformOs: linux
+        steps:
+          - checkout: none
+          - script: |
+              docker network create --driver bridge todo
+            displayName: Setting up Docker Network
+          - script: |
+              docker run --name redisdb -p 6379:6379 -d --network todo redis/redis-stack-server:latest
+            displayName: Run Redis
+
+          - script: |
+              docker run --name backend --rm -p 5000:5000 -e REDIS_HOST=redisdb --network todo $(basetag):$(latesttag)-$(platformOs) npm test
+            displayName: Runing Test cases
+
+  - stage: Deploy
+    condition: >
+      or(
+        and(
+          succeeded(),
+          eq(variables['Build.SourceBranch'], 'refs/heads/master')
+        ),
+        eq('${{parameters.deployment}}',true)
+      )
+    dependsOn: Test
+    jobs:
+      - deployment: 
+        displayName: Deployment Job
+        environment: Dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: none
+                - script: |
+                    echo "hello deployment"
+                  displayName: Sample deploy
+
+
