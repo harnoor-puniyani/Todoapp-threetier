@@ -43,7 +43,8 @@ stages:
     displayName: code analysis
     condition: > 
       or(
-        eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/master'),
+        eq(variables['System.PullRequest.TargetBranch'], 'master'),
+        eq(variables['System.PullRequest.TargetBrachName'],'master'),
         eq('${{parameters.codeAnalysis}}',true)
       )
     jobs:
