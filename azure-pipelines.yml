@@ -149,7 +149,7 @@ stages:
             displayName: Setting up Docker Network
           - script: |
               docker run --name redisdb -p 6379:6379 -d --network todo redis/redis-stack-server:latest
-            displayName: Run Refis
+            displayName: Run Redis
 
           - script: |
               docker run --name backend --rm -p 5000:5000 -e REDIS_HOST=redisdb --network todo $(basetag):$(latesttag)-$(platformOs) npm test
