@@ -7,6 +7,12 @@ trigger:
 - master
 - azure-pipelines
 
+pr:
+  branches:
+    include:
+      - master
+  drafts: true
+
 pool:
   vmImage: ubuntu-latest
 
@@ -15,6 +21,10 @@ variables:
   buildtag: '$(Build.BuildNumber)'
 
 parameters:
+  - name: codeAnalysis
+    default: false
+    type: boolean
+    displayName: code analysis
   - name: buildImages
     type: boolean
     displayName: Build Images
@@ -22,19 +32,29 @@ parameters:
   - name: testChanges
     type: boolean
     displayName: Test Changes
-    default: true
+    default: false
   - name: deployment
     type: boolean
     displayName: deploy changes
-    default: true
+    default: false
 
 stages:
   - stage: Code
     displayName: code analysis
+    condition: > 
+      or(
+        and(
+          eq(variables['Build.Reason'],'PullRequest'),
+          eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/master')
+        ),
+        eq('${{parameters.codeAnalysis}}',true)
+      )
     jobs:
     - job: Frontend
-      displayName: Static code analysis Frontend
+      displayName: code analysis Frontend
+      condition: 
       steps:
+        -  checkout: self
         - task: SonarCloudPrepare@3
           inputs:
             SonarQube: 'sonar qube cloud service connection'
@@ -59,13 +79,17 @@ stages:
             pollingTimeoutSec: '300'
   - stage: build
     dependsOn: Code
+    condition: >
+      or(
+          eq('${{parameters.buildImages}}',true),
+          eq(variables['Build.SourceBranch'], 'refs/heads/master')
+        )
     displayName: Build Images
     pool:
       vmImage: ubuntu-latest
     jobs:
       - job: build
         displayName: Build Backend
-        condition: eq('${{parameters.buildImages}}',true)
         variables:
           basetag: 'harnoorpuniyani/todo-threetier-backend'
         strategy:
@@ -78,6 +102,7 @@ stages:
             #   platformOs: windows
           maxParallel: 2
         steps:
+         - checkout: self
          - task: DockerInstaller@0
            inputs:
             dockerVersion: '28.3.0'
@@ -108,6 +133,7 @@ stages:
               platformOs: linux
           maxParallel: 1
         steps:
+         - checkout: self
          - task: DockerInstaller@0
            inputs:
             dockerVersion: '28.3.0'
@@ -130,7 +156,12 @@ stages:
   - stage: Test
     displayName: Unit Testing
     dependsOn: build
-    condition: or(succeeded('build'),eq('${{parameters.testChanges}}',true))
+    condition: >
+      or(
+        succeeded('build'),
+        eq('${{parameters.testChanges}}',true),
+        eq(variables['Build.SourceBranch'], 'refs/heads/azure-pipelines')
+      )
     jobs:
       - job: Backend
         variables:
@@ -144,6 +175,7 @@ stages:
               os: ubuntu-latest
               platformOs: linux
         steps:
+          - checkout: none
           - script: |
               docker network create --driver bridge todo
             displayName: Setting up Docker Network
@@ -156,7 +188,14 @@ stages:
             displayName: Runing Test cases
 
   - stage: Deploy
-    condition: or(succeeded(),eq('${{parameters.deployment}}',true))
+    condition: >
+      or(
+        and(
+          succeeded(),
+          eq(variables['Build.SourceBranch'], 'refs/heads/master')
+        ),
+        eq('${{parameters.deployment}}',true)
+      )
     dependsOn: Test
     jobs:
       - deployment: 
@@ -166,6 +205,7 @@ stages:
           runOnce:
             deploy:
               steps:
+                - checkout: none
                 - script: |
                     echo "hello deployment"
                   displayName: Sample deploy
