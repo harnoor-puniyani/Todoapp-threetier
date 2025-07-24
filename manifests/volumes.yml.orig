@@ -9,7 +9,11 @@ spec:
     storage: 600Mi
   volumeMode: Filesystem
   accessModes:
+<<<<<<< HEAD
+    - ReadwriteOncePod
+=======
     - ReadWriteOncePod
+>>>>>>> 610778e (corrected manifests)
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local
   local:
@@ -17,11 +21,16 @@ spec:
   nodeAffinity:
     required:
       nodeSelectorTerms:
+<<<<<<< HEAD
+        - matchFields:
+=======
         - matchExpressions:
+>>>>>>> 610778e (corrected manifests)
             - key: disk
               operator: In
               values:
                 - local
+<<<<<<< HEAD
   
 =======
   

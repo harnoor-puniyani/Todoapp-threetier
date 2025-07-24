@@ -19,6 +19,27 @@ spec:
         - name: redisdb
           image: redis/redis-stack-server:latest
           imagePullPolicy: IfNotPresent
+<<<<<<< HEAD
+          restartPolicy: Always
+          readinessProbe:
+            tcpSocket:
+              host: localhost
+              port: 6379
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            exec:
+              command:
+                - redis-cli
+                - PING
+=======
+>>>>>>> 610778e (corrected manifests)
           volumeMounts:
             - name: redis-storage
               mountPath: /data
@@ -35,5 +56,9 @@ spec:
         - name: redis-storage
           persistentVolumeClaim:
             claimName: redispvc
+<<<<<<< HEAD
+      
+=======
       nodeSelector:
         disk: local
+>>>>>>> 610778e (corrected manifests)

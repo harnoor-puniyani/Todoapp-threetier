@@ -5,5 +5,9 @@ metadata:
 data:
   window.env: |
     window.env = {
+<<<<<<< HEAD
+      BACKEND_URL: http://backend-service:80
+=======
       BACKEND_URL: "http://backend-service:80"
+>>>>>>> 610778e (corrected manifests)
     }

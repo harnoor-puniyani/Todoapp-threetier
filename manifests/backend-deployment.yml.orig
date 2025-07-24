@@ -1,12 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+<<<<<<< HEAD
+  name: backkend
+=======
   name: backend
+>>>>>>> 610778e (corrected manifests)
 spec:
   replicas: 1
   selector:
     matchLabels:
+<<<<<<< HEAD
+      app: backend-app
+=======
       app: backend-pod
+>>>>>>> 610778e (corrected manifests)
   template:
     metadata:
       labels:
@@ -16,6 +24,10 @@ spec:
       - name: backend
         image: harnoorpuniyani/todo-threetier-backend:20250723.14-linux
         imagePullPolicy: IfNotPresent
+<<<<<<< HEAD
+        restartPolicy: Always
+=======
+>>>>>>> 610778e (corrected manifests)
         env:
           - name: REDIS_HOST
             value: redis-service
@@ -30,6 +42,10 @@ spec:
           httpGet:
             path: /tasks
             port: 5000
+<<<<<<< HEAD
+            host: localhost
+=======
+>>>>>>> 610778e (corrected manifests)
           failureThreshold: 3
           initialDelaySeconds: 10
           periodSeconds: 5
@@ -39,6 +55,10 @@ spec:
           httpGet:
             path: /tasks
             port: 5000
+<<<<<<< HEAD
+            host: localhost
+=======
+>>>>>>> 610778e (corrected manifests)
           failureThreshold: 3
           initialDelaySeconds: 10
           periodSeconds: 5
