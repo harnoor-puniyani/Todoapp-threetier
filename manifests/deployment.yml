@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-app
+  template:
+    metadata:
+      labels:
+        app: todo-app
+    spec:
+      containers:
+      - name: redis
+        image: redis/redis-stack-server:latest
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 0.5m
+          limits:
+            memory: 256Mi
+            cpu: 1
+        ports:
+        - containerPort: 6379
+      - name: backend
+        image: harnoorpuniyani/todo-threetier-backend:20250723.14-linux
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 0.5m
+          limits:
+            memory: 256Mi
+            cpu: 1
+        env:
+          - redis:
+            name: REDIS_HOST
+            value: ""
+        ports:
+        - containerPort: 5000
+      - name: frontend
+        image: harnoorpuniyani/todo-threetier-frontend:20250723.14-linux
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 0.5m
+          limits:
+            memory: 256Mi
+            cpu: 1
+        volumeMounts:
+          - 
+        ports:
+        - containerPort: 3000
