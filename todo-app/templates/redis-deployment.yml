@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redisdb
+  template:
+    metadata:
+      name: redisdb
+      labels:
+        app: redisdb
+    spec:
+      containers:
+        - name: redisdb
+          image: {{.Values.image.repository}}:{{.Values.image.tag}}
+          imagePullPolicy: {{.Values.image.pullPolicy}}
+          resources:
+            requests:
+              cpu: 500m
+              memory: 200Mi
+            limits:
+              cpu: 800m
+              memory: 500Mi
+          ports:
+            - containerPort: 6379
