@@ -1,3 +1,4 @@
+{{- if .Values.redis.enabled}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,26 +6,43 @@ metadata:
   labels:
     app: redis
 spec:
-  replicas: 1
+  replicas: {{ .Values.redis.replicas}}
   selector:
     matchLabels:
-      app: redisdb
+      {{- range $key, $val := .Values.redis.podLabels }}
+          {{$key}}: {{$val}}
+      {{ end -}}
   template:
     metadata:
       name: redisdb
       labels:
-        app: redisdb
+        {{- range $key, $val := .Values.redis.podLabels }}
+          {{$key}}: {{$val}}
+        {{ end -}}
+        # app: redisdb
     spec:
       containers:
         - name: redisdb
-          image: {{.Values.image.repository}}:{{.Values.image.tag}}
-          imagePullPolicy: {{.Values.image.pullPolicy}}
+          image: {{ .Values.redis.image.name}}:{{ .Values.redis.image.tag}}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy}}
+          {{- if .Values.redis.volumes.enabled -}}
+          volumeMounts:
+            - name: {{ .Values.redis.volumes.name}}
+              mountPath: {{ .Values.redis.volumes.path}}
+          {{- end -}}
           resources:
             requests:
-              cpu: 500m
-              memory: 200Mi
+              cpu: {{ .Values.redis.resources.requests.cpu}}
+              memory: {{ .Values.redis.resources.requests.memory}}
             limits:
-              cpu: 800m
-              memory: 500Mi
+              cpu: {{ .Values.redis.resources.limits.cpu}}
+              memory: {{ .Values.redis.resources.limits.memory}}
           ports:
-            - containerPort: 6379
+            - containerPort: {{ .Values.redis.podPort}}
+      {{- if .Values.redis.volumes.enabled -}}
+      volumes:
+        - name: {{ .Values.redis.volumes.name}}
+          persistentVolumeClaim:
+            claimName: {{ .Values.redis.volumes.claimDetails.name}}
+      {{- end -}}
+{{- end -}}
