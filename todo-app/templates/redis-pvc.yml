@@ -2,14 +2,14 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-	name: {{ .Values.redis.volumes.claimDetails.name}}
+  name: {{ .Values.redis.volumes.claimDetails.name }}
 spec:
-	storageClassName: {{ .Values.redis.volumes.claimDetails.storageClassName}}
-	accessModes:
-	{{- range $i, $val := .Values.resia.volumes.claimDetails.accessModes }}
-		- {{$val}}
-	{{ end -}}
-	resources:
-		requests:
-			storage: {{ .Values.redis.volumes.claimDetails.storage}}
+  storageClassName: {{ .Values.redis.volumes.claimDetails.storageClassName }}
+  accessModes:
+{{- range $val := .Values.redis.volumes.claimDetails.accessModes }}
+    - {{$val}}
+{{ end }}
+  resources:
+    requests:
+      storage: {{ .Values.redis.volumes.claimDetails.storage}}
 {{- end -}}

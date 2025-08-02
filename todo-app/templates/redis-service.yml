@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-    name: redis-service
+    name: {{ .Values.redis.service.name}}
 spec:
-    selector:
-        {{- range $key, $val := .Values.redis.podLabels }}
-          {{$key}}: {{$val}}
-        {{ end -}}
-    {{- if and .Values.redis.service.enabled (eq .Values.redis.service.type "ClusterIP") -}}
-    ports:
-        - port: {{ .Values.redis.service.port}}
-          targetPort: {{ .Values.redis.service.port}}
-    type: {{ .Values.redis.service.type}}
-    {{- end -}}
+  selector:
+    {{- range $key, $val := .Values.redis.podLabels }}
+    {{$key}}: {{$val}}
+    {{ end -}}
+{{- if and .Values.redis.service.enabled (eq .Values.redis.service.type "ClusterIP") -}}
+  type: {{ .Values.redis.service.type}}
+  ports:
+    - port: {{ .Values.redis.service.port }}
+      targetPort: {{ .Values.redis.service.port }}
+{{- end -}}

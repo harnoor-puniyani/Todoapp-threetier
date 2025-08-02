@@ -1,6 +1,5 @@
 global:
   imagePullPolicy: IfNotPresent
-
 redis:
   enabled: true
   image:
@@ -10,7 +9,6 @@ redis:
   podPort: 6379
   podLabels:
     app: redisdb
-    database: redis
   resources:
     requests:
       cpu: 500m
@@ -22,7 +20,8 @@ redis:
     enabled: true
     type: ClusterIP
     port: 6379
-  volumes:  
+    name: redis-service
+  volumes:
     enabled: true
     name: redis-mount
     path: /data
@@ -32,3 +31,29 @@ redis:
       accessModes:
         - ReadWriteOnce
       storage: 2Gi
+backend:
+  enabled: true
+  image:
+    name: harnoorpuniyani/todo-threetier-backend
+    tag: 20250730.1-linux
+  replicas: 2
+  podPort: 5000
+  podLabels:
+    app: todo
+    tier: backend
+  resources:
+    requests:
+      cpu: 300m
+      memory: 250Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 80
+    targetPort: 5000
+    name: todo-backend-service
+
+ingress:
+  enabled: false
