@@ -33,6 +33,12 @@ redis:
       storage: 2Gi
 backend:
   enabled: true
+  name: backend-deployment
+  labels:
+    app: todo
+    stack: express
+    tier: backend
+    kind: deployment
   image:
     name: harnoorpuniyani/todo-threetier-backend
     tag: 20250730.1-linux
