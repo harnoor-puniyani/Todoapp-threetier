@@ -60,6 +60,44 @@ backend:
     port: 80
     targetPort: 5000
     name: todo-backend-service
+frontend:
+  enabled: true
+  name: frontend-deployment
+  labels:
+    app: todo
+    stack: react
+    tier: frontend
+    kind: deployment
+  image:
+    name: harnoorpuniyani/todo-threetier-backend
+    tag: 20250730.1-linux
+  replicas: 2
+  podPort: 3000
+  podLabels:
+    app: todo
+    tier: frontend
+  resources:
+    requests:
+      cpu: 300m
+      memory: 250Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+    name: todo-frontend-service
+  volumes:
+    enabled: true
+    name: configmap-mount
+    path: /app/build/envmount/env.js
+    configmapDetails:
+      name: env.js
+      items:
+        - key: window.env
+          path: env.js
 
 ingress:
   enabled: false

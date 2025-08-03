@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: {{ .Values.frontend.name }}
+    labels:
+    {{ range $key, $val := .Values.frontend.labels }}
+        {{$key}}: {{$val}}
+    {{end}}
+spec:
+    replicas: {{ .Values.frontend.replicas }}
+    selector:
+        matchLabels:
+        {{ range $key,$val := .Values.frontend.podLabels }}
+            {{$key}}: {{$val}}
+        {{end}}
+    template:
+        metadata:
+            name: frontend-template-name
+            labels:
+            {{ range $key,$val := .Values.frontend.podLabels }}
+                {{$key}}: {{$val}}
+            {{end}}
+        spec:
+            containers:
+                - name: fronend-PodName
+                  image: {{ .Values.fronend.image.name }}:{{ .Values.frontend.image.tag }}
+                  imagePullPolicy: {{ .Values.global.imagePullPolicy}}
+                  resources:
+                    requests:
+                        cpu: {{ .Values.fronend.resources.requests.cpu }}
+                        memory: {{ .Values.fronend.resources.requests.memory }}
+                    limits:
+                        cpu: {{ .Values.fronend.resources.limits.cpu }}
+                        memory: {{ .Values.fronend.resources.limits.memory }}
+                  {{ if .values.fronend.volumes.enabled }}
+                  volumeMounts:
+                    - name: {{ .Values.fronend.volumes.enabled }}
+                      mountPath: {{ .Values.fronend.volumes.path }}
+                  {{end }}
+                  ports:
+                    - containerPort: {{ .Values.fronend.podPort}}
+            volumes:
+                - name: {{ .Values.fronend.volumes.enabled }}
+                  configMap:
+                    name: {{ .Values.frontend.volumes.configmapDetails.name }}
+                    items:
+                    {{range $i, $val := .Values.fronend.volumes.configmapDetails.items }}
+                        - {{$val}}
+                    {{ end }}
+
