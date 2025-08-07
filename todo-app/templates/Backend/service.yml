@@ -4,7 +4,7 @@ metadata:
     name: {{ .Values.backend.service.name }}
 spec:
     selector:
-    {{range $key,$val := .Values.backend.service.name }}
+    {{range $key,$val := .Values.backend.podLabels }}
         {{$key}}: {{$val}}
     {{ end }}
     {{ if and .Values.backend.service.enabled (eq .Values.backend.service.type "ClusterIP")}}

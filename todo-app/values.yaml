@@ -41,7 +41,7 @@ backend:
     kind: deployment
   image:
     name: harnoorpuniyani/todo-threetier-backend
-    tag: 20250730.1-linux
+    tag: 20250723.14-linux
   replicas: 2
   podPort: 5000
   podLabels:
@@ -69,8 +69,8 @@ frontend:
     tier: frontend
     kind: deployment
   image:
-    name: harnoorpuniyani/todo-threetier-backend
-    tag: 20250730.1-linux
+    name: harnoorpuniyani/todo-threetier-frontend
+    tag: 20250723.14-linux
   replicas: 2
   podPort: 3000
   podLabels:
@@ -93,6 +93,7 @@ frontend:
     enabled: true
     name: configmap-mount
     path: /app/build/envmount/env.js
+    subPath: env.js
     configmapDetails:
       name: env.js
       items:

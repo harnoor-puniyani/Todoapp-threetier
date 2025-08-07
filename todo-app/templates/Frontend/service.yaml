@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: {{ .Values.frontend.service.name }}
+spec:
+    selector:
+    {{range $k,$v := .Values.frontend.podLabels }}
+        {{$k}}: {{$v}}
+    {{end}}
+    {{if and .Values.frontend.service.enabled (eq .Values.frontend.service.type "ClusterIP")}}
+    type: {{ .Values.frontend.service.type }}
+    ports:
+        - port: {{ .Values.frontend.service.port }}
+          targetPort: {{ .Values.frontend.service.targetPort }}
+    {{end}}

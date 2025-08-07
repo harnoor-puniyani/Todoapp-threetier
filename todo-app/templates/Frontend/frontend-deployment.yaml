@@ -22,29 +22,30 @@ spec:
             {{end}}
         spec:
             containers:
-                - name: fronend-PodName
-                  image: {{ .Values.fronend.image.name }}:{{ .Values.frontend.image.tag }}
+                - name: {{ "frontend-PodName" | lower }}
+                  image: {{ .Values.frontend.image.name }}:{{ .Values.frontend.image.tag }}
                   imagePullPolicy: {{ .Values.global.imagePullPolicy}}
                   resources:
                     requests:
-                        cpu: {{ .Values.fronend.resources.requests.cpu }}
-                        memory: {{ .Values.fronend.resources.requests.memory }}
+                        cpu: {{ .Values.frontend.resources.requests.cpu }}
+                        memory: {{ .Values.frontend.resources.requests.memory }}
                     limits:
-                        cpu: {{ .Values.fronend.resources.limits.cpu }}
-                        memory: {{ .Values.fronend.resources.limits.memory }}
-                  {{ if .values.fronend.volumes.enabled }}
+                        cpu: {{ .Values.frontend.resources.limits.cpu }}
+                        memory: {{ .Values.frontend.resources.limits.memory }}
+                  {{ if .Values.frontend.volumes.enabled }}
                   volumeMounts:
-                    - name: {{ .Values.fronend.volumes.enabled }}
-                      mountPath: {{ .Values.fronend.volumes.path }}
+                    - name: {{ .Values.frontend.volumes.name }}
+                      mountPath: {{ .Values.frontend.volumes.path }}
+                      subPath: {{ .Values.frontend.volumes.subPath}}
                   {{end }}
                   ports:
-                    - containerPort: {{ .Values.fronend.podPort}}
+                    - containerPort: {{ .Values.frontend.podPort}}
             volumes:
-                - name: {{ .Values.fronend.volumes.enabled }}
+                - name: {{ .Values.frontend.volumes.name }}
                   configMap:
                     name: {{ .Values.frontend.volumes.configmapDetails.name }}
                     items:
-                    {{range $i, $val := .Values.fronend.volumes.configmapDetails.items }}
-                        - {{$val}}
+                    {{range $i, $val := .Values.frontend.volumes.configmapDetails.items }}
+                        - key: {{$val.key}}
+                          path: {{$val.path}}
                     {{ end }}
-

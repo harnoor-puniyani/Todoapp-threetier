@@ -1,5 +1,5 @@
 {{ if .Values.backend.enabled }}
-apiVersion: v1/apps
+apiVersion: apps/v1
 kind: Deployment
 metadata: 
     name: {{ .Values.backend.name }}
@@ -37,9 +37,5 @@ spec:
                     - containerPort: {{ .Values.backend.podPort}}
                   env:
                     - name: REDIS_HOST
-                      value: {{ .Values.redis.service.name }}
-                
-                
-                
-            
+                      value: {{ .Values.redis.service.name }}     
 {{end}}

@@ -2,8 +2,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
     name: env.js
+    namespace: {{ .Release.Namespace }}
 data:
     window.env: |
         window.env = {
-            BACKEND_URL = "http://backend-service:80"
+            BACKEND_URL :  "http://{{ .Values.backend.service.name }}:{{ .Values.backend.service.port}}"
         }
