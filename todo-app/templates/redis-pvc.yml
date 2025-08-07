@@ -1,11 +1,15 @@
+{{- if .Values.redis.volumes.enabled -}}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-	name: redis-pvc
+  name: {{ .Values.redis.volumes.claimDetails.name }}
 spec:
-	storageClassName: {{.Values.pvc.storageClassName}}
-	accessModes:
-		- ReadWriteOnce
-	resources:
-		requests:
-			storage: 5Gi
+  storageClassName: {{ .Values.redis.volumes.claimDetails.storageClassName }}
+  accessModes:
+{{- range $val := .Values.redis.volumes.claimDetails.accessModes }}
+    - {{$val}}
+{{ end }}
+  resources:
+    requests:
+      storage: {{ .Values.redis.volumes.claimDetails.storage}}
+{{- end -}}

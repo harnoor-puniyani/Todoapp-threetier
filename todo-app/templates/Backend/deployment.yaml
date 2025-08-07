@@ -1,0 +1,41 @@
+{{ if .Values.backend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+    name: {{ .Values.backend.name }}
+    labels:
+    {{ range $key, $val := .Values.backend.labels }}
+        {{$key}}: {{$val}}
+    {{ end }}
+spec:
+    replicas: {{ .Values.backend.replicas }}
+    selector:
+        matchLabels:
+        {{ range $key, $val := .Values.backend.podLabels }}
+            {{$key}}: {{$val}}
+        {{ end }}
+    template:
+        metadata:
+            name: template-name
+            labels:
+            {{ range $key, $val := .Values.backend.podLabels }}
+                {{$key}}: {{$val}}
+            {{ end }}
+        spec:
+            containers:
+                - name: backend
+                  imagePullPolicy: {{ .Values.global.imagePullPolicy}}
+                  image: {{ .Values.backend.image.name}}:{{ .Values.backend.image.tag}}
+                  resources:
+                    requests:
+                        cpu: {{ .Values.backend.resources.requests.cpu}}
+                        memory: {{ .Values.backend.resources.requests.memory}}
+                    limits:
+                        cpu: {{ .Values.backend.resources.limits.cpu}}
+                        memory: {{ .Values.backend.resources.limits.memory}}
+                  ports:
+                    - containerPort: {{ .Values.backend.podPort}}
+                  env:
+                    - name: REDIS_HOST
+                      value: {{ .Values.redis.service.name }}     
+{{end}}

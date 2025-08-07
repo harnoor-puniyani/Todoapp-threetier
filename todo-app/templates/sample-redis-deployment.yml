@@ -1,0 +1,49 @@
+ {{- if .Values.redis.enabled}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  labels:
+    app: redis
+spec:
+  replicas: {{ .Values.redis.replicas}}
+  selector:
+    matchLabels:
+  {{- range $key, $val := .Values.redis.podLabels }}
+      {{$key}}: {{$val}}
+  {{ end -}}
+  template:
+    metadata:
+      name: redisdb
+      labels:
+    {{- range $key, $val := .Values.redis.podLabels }}
+        {{$key}}: {{$val}}
+    {{ end -}}
+    spec:
+      containers:
+        - name: redisdb
+          imagePullPolicy: IfNotPresent
+          image: redis/redis-stack-server:latest
+          {{if .Values.redis.volumes.enabled -}}
+          volumeMounts:
+            - name: {{ .Values.redis.volumes.name}}
+              mountPath: {{ .Values.redis.volumes.path}}
+          {{- end}}
+          resources:
+            requests:
+              cpu: {{ .Values.redis.resources.requests.cpu}}
+              memory: {{ .Values.redis.resources.requests.memory}}
+            limits:
+              cpu: {{ .Values.redis.resources.limits.cpu}}
+              memory: {{ .Values.redis.resources.limits.memory}}
+          ports:
+            - containerPort: {{ .Values.redis.podPort}}
+
+{{if .Values.redis.volumes.enabled }}
+      
+      volumes:
+        - name: {{ .Values.redis.volumes.name}}
+          persistentVolumeClaim:
+            claimName: {{ .Values.redis.volumes.claimDetails.name}}
+{{- end -}}
+{{- end -}}
